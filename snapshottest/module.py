@@ -31,7 +31,7 @@ class SnapshotModule(object):
             source = imp.load_source(self.module, self.filepath)
             assert isinstance(source.snapshots, Snapshot)
             return source.snapshots
-        except:
+        except Exception:
             return Snapshot()
 
     def visit(self, snapshot_name):
@@ -50,9 +50,9 @@ class SnapshotModule(object):
         unvisited_snapshots = 0
         unvisited_modules = 0
         for module in cls.get_modules():
-            l = len(module.unvisited_snapshots)
-            unvisited_snapshots += l
-            unvisited_modules += min(l, 1)
+            num_unvisited_snapshots = len(module.unvisited_snapshots)
+            unvisited_snapshots += num_unvisited_snapshots
+            unvisited_modules += min(num_unvisited_snapshots, 1)
 
         return unvisited_snapshots, unvisited_modules
 
@@ -65,9 +65,9 @@ class SnapshotModule(object):
         count_snapshots = 0
         count_modules = 0
         for module in SnapshotModule._snapshot_modules.values():
-            l = getter(module)
-            count_snapshots += l
-            count_modules += min(l, 1)
+            num_snapshots = getter(module)
+            count_snapshots += num_snapshots
+            count_modules += min(num_snapshots, 1)
 
         return count_snapshots, count_modules
 
@@ -226,7 +226,7 @@ class SnapshotTest(object):
                     PrettyDiff(value_copy, self),
                     PrettyDiff(prev_snapshot_copy, self)
                 )
-            except:
+            except Exception:
                 self.fail()
                 raise
 

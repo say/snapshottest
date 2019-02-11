@@ -101,7 +101,7 @@ class TestCase(unittest.TestCase):
         SnapshotTest._current_tester = None
         self._snapshot = None
 
-    def assert_match_snapshot(self, value):
-        self._snapshot.assert_match(value)
+    def assert_match_snapshot(self, value, ignore_fields=None):
+        self._snapshot.assert_match(value, ignore_fields)
 
     assertMatchSnapshot = assert_match_snapshot

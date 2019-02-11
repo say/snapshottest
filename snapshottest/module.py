@@ -31,7 +31,7 @@ class SnapshotModule(object):
             source = imp.load_source(self.module, self.filepath)
             assert isinstance(source.snapshots, Snapshot)
             return source.snapshots
-        except:
+        except Exception:
             return Snapshot()
 
     def visit(self, snapshot_name):
@@ -50,9 +50,9 @@ class SnapshotModule(object):
         unvisited_snapshots = 0
         unvisited_modules = 0
         for module in cls.get_modules():
-            l = len(module.unvisited_snapshots)
-            unvisited_snapshots += l
-            unvisited_modules += min(l, 1)
+            num_unvisited_snapshots = len(module.unvisited_snapshots)
+            unvisited_snapshots += num_unvisited_snapshots
+            unvisited_modules += min(num_unvisited_snapshots, 1)
 
         return unvisited_snapshots, unvisited_modules
 
@@ -65,9 +65,9 @@ class SnapshotModule(object):
         count_snapshots = 0
         count_modules = 0
         for module in SnapshotModule._snapshot_modules.values():
-            l = getter(module)
-            count_snapshots += l
-            count_modules += min(l, 1)
+            num_snapshots = getter(module)
+            count_snapshots += num_snapshots
+            count_modules += min(num_snapshots, 1)
 
         return count_snapshots, count_modules
 
@@ -215,16 +215,18 @@ class SnapshotTest(object):
     def assert_equals(self, value, snapshot):
         assert value == snapshot
 
-    def assert_match(self, value):
+    def assert_match(self, value, ignore_fields=None):
+        value_copy = self.remove_fields(value, ignore_fields)
         self.visit()
         prev_snapshot = not self.update and self.module[self.test_name]
         if prev_snapshot:
             try:
+                prev_snapshot_copy = self.remove_fields(prev_snapshot, ignore_fields)
                 self.assert_equals(
-                    PrettyDiff(value, self),
-                    PrettyDiff(prev_snapshot, self)
+                    PrettyDiff(value_copy, self),
+                    PrettyDiff(prev_snapshot_copy, self)
                 )
-            except:
+            except Exception:
                 self.fail()
                 raise
 
@@ -233,9 +235,27 @@ class SnapshotTest(object):
     def save_changes(self):
         self.module.save()
 
+    @classmethod
+    def remove_fields(cls, input, remove_fields_list=None):
+        if remove_fields_list is None:
+            remove_fields_list = []
 
-def assert_match_snapshot(value):
+        if isinstance(input, list):
+            return [cls.remove_fields(el, remove_fields_list) for el in input]
+
+        if isinstance(input, dict):
+            result = {
+                key: cls.remove_fields(value, remove_fields_list)
+                for key, value in input.items()
+                if key not in remove_fields_list
+            }
+            return result
+
+        return input
+
+
+def assert_match_snapshot(value, ignore_fields=None):
     if not SnapshotTest._current_tester:
         raise Exception("You need to use assert_match_snapshot in the SnapshotTest context.")
 
-    SnapshotTest._current_tester.assert_match(value)
+    SnapshotTest._current_tester.assert_match(value, ignore_fields)

@@ -5,11 +5,17 @@ from setuptools import setup, find_packages
 with open('README.rst') as f:
     readme = f.read()
 
-tests_require = ['six', 'pytest>=3.0', 'pytest-cov', 'nose', 'django>=1.10.6']
+tests_require = [
+    'six',
+    'pytest>=3.0',
+    'pytest-cov<2.6.0',
+    'nose',
+    'django>=1.10.6',
+]
 
 setup(
-    name='snapshottest',
-    version='0.5.0',
+    name='snapshottest-say',
+    version='0.5.1',
     description='Snapshot Testing utils for Python',
     long_description=readme,
     author='Syrus Akbary',
